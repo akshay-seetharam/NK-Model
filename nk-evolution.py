@@ -19,7 +19,7 @@ class Genome:
         self.mutation_rate = mutation_rate
         self.genotype = [random.randint(0, a - 1) for _ in range(n)] if genotype is None else genotype
         self.hash = g2h(self.genotype, a)
-        #self.k_others = k_others
+        # self.k_others = k_others
         self.ws = hash_ws[self.hash]
 
     def __str__(self):
@@ -71,12 +71,18 @@ def next_gen(genome_dict):
         new_genotypes = old_genome.get_mutants()
         for new_genotype in new_genotypes:
             new_genome_dict[Genome(old_genome.n,
-                old_genome.a,
-                old_genome.k,
-                genotype=new_genotype,
-                mutation_rate=old_genome.mutation_rate
-            )] = new_portion_raw * old_genome.mutation_rate / len(new_genotypes)
+                                   old_genome.a,
+                                   old_genome.k,
+                                   genotype=new_genotype,
+                                   mutation_rate=old_genome.mutation_rate
+                                   )] = new_portion_raw * old_genome.mutation_rate / len(new_genotypes)
 
+    deletable = []
+    for new_genome, new_portion in new_genome_dict.items():
+        if new_portion < 0.01: # pruning threshold
+            deletable.append(new_genome)
+    for to_be_deleted in deletable:
+        del new_genome_dict[to_be_deleted]
     # Rescale
     total_pop = sum([portion for genome, portion in new_genome_dict.items()])
     for genome in new_genome_dict.keys():
@@ -84,19 +90,41 @@ def next_gen(genome_dict):
 
     return new_genome_dict
 
+def avg_fitness(gd):
+    """Returns average fitness for genome dictionary"""
+    return sum([k.fitness() * v for k, v in gd.items()])
+
+def evolve_over_time(genome_dict, gens):
+    """Evolves genome_dict over generations
+        Arguments:
+            genome_dict: dictionary of genomes
+            gens: number of generations over which to evolve
+        Returns:
+            historical_genome_dict: all genome dictionaries
+            fitnesses: average fitness over time"""
+    historical_genome_dict = [genome_dict]
+    for i in range(gens):
+        historical_genome_dict.append(next_gen(historical_genome_dict[-1]))
+    fitnesses = [avg_fitness(gd) for gd in historical_genome_dict]
+
+    return historical_genome_dict, fitnesses
+
+
 def generate_hash_ws(N, A):
     ''' Assigns a list of ws to each genotype hash '''
     d = {}
-    for i in range(A**N):
+    for i in range(A ** N):
         d[i] = [random.random() for _ in range(N)]
     return d
+
 
 def g2h(genotype, A):
     ''' Takes each genotype and outputs its hash '''
     h = 0
     for i, v in enumerate(genotype):
-        h += (v * A**i)
+        h += (v * A ** i)
     return h
+
 
 def generate_k_others(N, K):
     ''' Assigns a (static global) set of K other genes affecting fitness of each gene. '''
@@ -107,17 +135,19 @@ def generate_k_others(N, K):
         l.append(choices)
     return l
 
+
 if __name__ == '__main__':
     """ BEGIN PARAMETERS """
     N = 5
     A = 2
     K = 1
-    generations = 1000
+    generations = 20
     """ END PARAMETERS"""
 
     k_others = generate_k_others(N, K)
     hash_ws = generate_hash_ws(N, A)
     from pprint import pprint
+
     print('K-Others:')
     pprint(k_others)
     print('Hash -> Ws:')
@@ -126,4 +156,10 @@ if __name__ == '__main__':
     genome = Genome(N, A, K)
     print(genome, genome.genotype)
     my_genome_dict = {genome: 1.0}
-    print([(i.genotype, j) for i, j in next_gen(my_genome_dict).items()])
+    historical_genomes, fitnesses = evolve_over_time(my_genome_dict, generations)
+    print(historical_genomes)
+    print(fitnesses)
+    plt.plot(range(len(fitnesses)), fitnesses)
+    plt.xlabel('Generation')
+    plt.ylabel('Average Fitness')
+    plt.show()
