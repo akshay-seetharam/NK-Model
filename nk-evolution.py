@@ -138,10 +138,11 @@ def generate_k_others(N, K):
 
 if __name__ == '__main__':
     """ BEGIN PARAMETERS """
-    N = 5
+    N = 100
     A = 2
-    K = 1
+    K = 3
     generations = 20
+    populations = 20
     """ END PARAMETERS"""
 
     k_others = generate_k_others(N, K)
@@ -153,13 +154,16 @@ if __name__ == '__main__':
     print('Hash -> Ws:')
     pprint(hash_ws)
 
-    genome = Genome(N, A, K)
-    print(genome, genome.genotype)
-    my_genome_dict = {genome: 1.0}
-    historical_genomes, fitnesses = evolve_over_time(my_genome_dict, generations)
-    print(historical_genomes)
-    print(fitnesses)
-    plt.plot(range(len(fitnesses)), fitnesses)
+    all_fitnesses = []
+    for i in range(populations):
+        genome = Genome(N, A, K)
+        print(genome, genome.genotype)
+        my_genome_dict = {genome: 1.0}
+        historical_genomes, fitnesses = evolve_over_time(my_genome_dict, generations)
+        all_fitnesses.append(fitnesses)
+
+    for i in all_fitnesses:
+        plt.plot(range(len(fitnesses)), i)
     plt.xlabel('Generation')
     plt.ylabel('Average Fitness')
     plt.show()
