@@ -80,7 +80,7 @@ def next_gen(genome_dict):
 
     deletable = []
     for new_genome, new_portion in new_genome_dict.items():
-        if new_portion < 0.01: # pruning threshold
+        if new_portion < 0.01:  # pruning threshold
             deletable.append(new_genome)
     for to_be_deleted in deletable:
         del new_genome_dict[to_be_deleted]
@@ -91,9 +91,11 @@ def next_gen(genome_dict):
 
     return new_genome_dict
 
+
 def avg_fitness(gd):
     """Returns average fitness for genome dictionary"""
     return sum([k.fitness() * v for k, v in gd.items()])
+
 
 def evolve_over_time(genome_dict, gens):
     """Evolves genome_dict over generations
@@ -139,12 +141,12 @@ def generate_k_others(N, K):
 
 if __name__ == '__main__':
     """ BEGIN PARAMETERS """
-    N = 100
+    N = 20
     A = 2
-    K = 3
+    K = 5
     mutation_proportion = 0.05
-    generations = 20
-    populations = 20
+    generations = 150
+    populations = 10
     """ END PARAMETERS"""
 
     k_others = generate_k_others(N, K)
@@ -156,16 +158,88 @@ if __name__ == '__main__':
     print('Hash -> Ws:')
     # pprint(hash_ws)
 
-    all_fitnesses = []
+    # fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(10, 10))
+    # axs = axs.flatten()
+
+    # for index, coord in enumerate(axs):
+    #     all_fitnesses = []
+    #     for i in range(populations):
+    #         genome = Genome(N, A, K, None, mutation_proportion)
+    #         print(f'run {i} starting with', genome, genome.genotype)
+    #         my_genome_dict = {genome: 1.0}
+    #         historical_genomes, fitnesses = evolve_over_time(my_genome_dict, generations)
+    #         all_fitnesses.append(fitnesses)
+    #     averaged = np.mean(all_fitnesses, axis=0)
+    #     for individual in all_fitnesses:
+    #         coord.plot(range(len(averaged)), individual, color='grey', alpha=0.2)
+    #     coord.plot(range(len(averaged)), averaged)
+    #     coord.set_ylim(0, 1.5)
+    #     coord.set_title(f'K={K}')
+    #     K += 2
+    #     # if K >= len(axs) - 1:
+    #     #     break
     for i in range(populations):
+        all_fitnesses = []
         genome = Genome(N, A, K, None, mutation_proportion)
         print(f'run {i} starting with', genome, genome.genotype)
         my_genome_dict = {genome: 1.0}
         historical_genomes, fitnesses = evolve_over_time(my_genome_dict, generations)
         all_fitnesses.append(fitnesses)
+        averaged = np.mean(all_fitnesses, axis=0)
+        for individual in all_fitnesses:
+            plt.plot(range(len(averaged)), individual)#, color='grey', alpha=0.2)
+    # plt.plot(range(len(averaged)), averaged)
+    plt.title(f'Fitness vs Generation, K={K}')
+    # plt.ylim(0, 1.5)
+    plt.show()
 
-    for i in all_fitnesses:
-        plt.plot(range(len(fitnesses)), i)
-    plt.xlabel('Generation')
-    plt.ylabel('Average Fitness')
+    plt.figure()
+    K = 10
+    for i in range(populations):
+        all_fitnesses = []
+        genome = Genome(N, A, K, None, mutation_proportion)
+        print(f'run {i} starting with', genome, genome.genotype)
+        my_genome_dict = {genome: 1.0}
+        historical_genomes, fitnesses = evolve_over_time(my_genome_dict, generations)
+        all_fitnesses.append(fitnesses)
+        averaged = np.mean(all_fitnesses, axis=0)
+        for individual in all_fitnesses:
+            plt.plot(range(len(averaged)), individual)#, color='grey', alpha=0.2)
+    # plt.plot(range(len(averaged)), averaged)
+    plt.title(f'Fitness vs Generation, K={K}')
+    # plt.ylim(0, 1.5)
+    plt.show()
+
+    plt.figure()
+    K = 0
+    for i in range(populations):
+        all_fitnesses = []
+        genome = Genome(N, A, K, None, mutation_proportion)
+        print(f'run {i} starting with', genome, genome.genotype)
+        my_genome_dict = {genome: 1.0}
+        historical_genomes, fitnesses = evolve_over_time(my_genome_dict, generations)
+        all_fitnesses.append(fitnesses)
+        averaged = np.mean(all_fitnesses, axis=0)
+        for individual in all_fitnesses:
+            plt.plot(range(len(averaged)), individual)  # , color='grey', alpha=0.2)
+    # plt.plot(range(len(averaged)), averaged)
+    plt.title(f'Fitness vs Generation, K={K}')
+    # plt.ylim(0, 1.5)
+    plt.show()
+
+    plt.figure()
+    K = 19
+    for i in range(populations):
+        all_fitnesses = []
+        genome = Genome(N, A, K, None, mutation_proportion)
+        print(f'run {i} starting with', genome, genome.genotype)
+        my_genome_dict = {genome: 1.0}
+        historical_genomes, fitnesses = evolve_over_time(my_genome_dict, generations)
+        all_fitnesses.append(fitnesses)
+        averaged = np.mean(all_fitnesses, axis=0)
+        for individual in all_fitnesses:
+            plt.plot(range(len(averaged)), individual)  # , color='grey', alpha=0.2)
+    # plt.plot(range(len(averaged)), averaged)
+    plt.title(f'Fitness vs Generation, K={K}')
+    # plt.ylim(0, 1.5)
     plt.show()
