@@ -4,19 +4,20 @@ from matplotlib import pyplot as plt
 
 
 class Genome:
-    def __init__(self, n, a, k, genotype=None, mutation_rate=0.1):
+    def __init__(self, n, a, k, genotype=None, mutation_proportion=0.1):
         """ Constructor for state
         Arguments:
             n: length of genome
             a: options for choice at each locus in genome
             k: number of alleles that affect fitness from one allele
             genotype: predefined genotype, None by default
+            mutation_proportion: proportion of possible mutants that form
         Returns:
             New instance of State """
         self.n = n
         self.a = a
         self.k = k
-        self.mutation_rate = mutation_rate
+        self.mutation_proportion = mutation_proportion
         self.genotype = [random.randint(0, a - 1) for _ in range(n)] if genotype is None else genotype
         self.hash = g2h(self.genotype, a)
         # self.k_others = k_others
@@ -41,11 +42,11 @@ class Genome:
     def get_mutants(self):
         """ Gets mutants
         Returns:
-                mutants: all genotypes one mutation away """
+                mutants: all genotypes one mutation away, taking mutation_porportion into account """
         mutants = []
         for i in range(self.n):
             for j in range(self.a):
-                if self.genotype[i] == j:
+                if self.genotype[i] == j or np.random.random() > self.mutation_proportion:
                     continue
                 new_genotype = self.genotype.copy()
                 new_genotype[i] = j
@@ -64,7 +65,7 @@ def next_gen(genome_dict):
     for old_genome, portion in genome_dict.items():
         # Calculate percentage that survived and didn't mutate
         new_portion_raw = portion * old_genome.fitness()
-        new_portion = new_portion_raw * (1 - old_genome.mutation_rate)
+        new_portion = new_portion_raw * (1 - old_genome.mutation_proportion)
         new_genome_dict[old_genome] = new_portion
 
         # Mutations
@@ -74,8 +75,8 @@ def next_gen(genome_dict):
                                    old_genome.a,
                                    old_genome.k,
                                    genotype=new_genotype,
-                                   mutation_rate=old_genome.mutation_rate
-                                   )] = new_portion_raw * old_genome.mutation_rate / len(new_genotypes)
+                                   mutation_proportion=old_genome.mutation_proportion
+                                   )] = new_portion_raw * old_genome.mutation_proportion / len(new_genotypes)
 
     deletable = []
     for new_genome, new_portion in new_genome_dict.items():
@@ -121,8 +122,8 @@ def generate_hash_ws(N, A):
 def g2h(genotype, A):
     ''' Takes each genotype and outputs its hash '''
     h = 0
-    for i, v in enumerate(genotype):
-        h += (v * A ** i)
+    for j, v in enumerate(genotype):
+        h += (v * A ** j)
     return h
 
 
@@ -141,6 +142,7 @@ if __name__ == '__main__':
     N = 100
     A = 2
     K = 3
+    mutation_proportion = 0.05
     generations = 20
     populations = 20
     """ END PARAMETERS"""
@@ -150,14 +152,14 @@ if __name__ == '__main__':
     from pprint import pprint
 
     print('K-Others:')
-    pprint(k_others)
+    # pprint(k_others)
     print('Hash -> Ws:')
-    pprint(hash_ws)
+    # pprint(hash_ws)
 
     all_fitnesses = []
     for i in range(populations):
-        genome = Genome(N, A, K)
-        print(genome, genome.genotype)
+        genome = Genome(N, A, K, None, mutation_proportion)
+        print(f'run {i} starting with', genome, genome.genotype)
         my_genome_dict = {genome: 1.0}
         historical_genomes, fitnesses = evolve_over_time(my_genome_dict, generations)
         all_fitnesses.append(fitnesses)
